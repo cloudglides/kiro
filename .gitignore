@@ -1,0 +1,21 @@
+# Temporary files
+*.tmp
+*.png
+__pycache__/
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Config (optional, if sensitive)
+# conf.json
+
+# Build artifacts (if any)
+dist/
+build/
