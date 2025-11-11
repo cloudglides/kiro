@@ -16,7 +16,7 @@
           buildInputs = with pkgs; [
             gjs
             gtk3
-            libsoup_2_4
+            libsoup_3
             cairo
             pango
             gdk-pixbuf
@@ -29,7 +29,7 @@
           ];
 
           shellHook = ''
-            export GI_TYPELIB_PATH="${pkgs.gtk3}/lib/girepository-1.0:${pkgs.libsoup_2_4}/lib/girepository-1.0:${pkgs.gdk-pixbuf}/lib/girepository-1.0:${pkgs.cairo}/lib/girepository-1.0:${pkgs.glib}/lib/girepository-1.0:${pkgs.pango}/lib/girepository-1.0:$GI_TYPELIB_PATH"
+            export GI_TYPELIB_PATH="${pkgs.gtk3}/lib/girepository-1.0:${pkgs.libsoup_3}/lib/girepository-1.0:${pkgs.gdk-pixbuf}/lib/girepository-1.0:${pkgs.cairo}/lib/girepository-1.0:${pkgs.glib}/lib/girepository-1.0:${pkgs.pango}/lib/girepository-1.0:$GI_TYPELIB_PATH"
             export GDK_PIXBUF_MODULE_FILE="${pkgs.gdk-pixbuf}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
           '';
         };

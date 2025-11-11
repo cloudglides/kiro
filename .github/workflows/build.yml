@@ -37,7 +37,7 @@ jobs:
           gjs \
           libgtk-3-dev \
           libgirepository1.0-dev \
-          libsoup2.4-dev \
+          libsoup-3.0-dev \
           libcairo2-dev \
           libpango1.0-dev \
           libgdk-pixbuf-2.0-dev \
@@ -68,9 +68,8 @@ jobs:
         mkdir -p ${{ env.APP_NAME }}/usr/share/icons/hicolor/512x512/apps
         mkdir -p ${{ env.APP_NAME }}/usr/share/doc/${{ env.APP_NAME }}
 
-        cp main.js ${{ env.APP_NAME }}/usr/bin/${{ env.APP_NAME }}
-        cp screenshot-editor.js ${{ env.APP_NAME }}/usr/bin/
-        cp main-app.js ${{ env.APP_NAME }}/usr/bin/
+        cp src/main.js ${{ env.APP_NAME }}/usr/bin/${{ env.APP_NAME }}
+        cp src/*.js ${{ env.APP_NAME }}/usr/bin/
         chmod +x ${{ env.APP_NAME }}/usr/bin/${{ env.APP_NAME }}
 
         cat > ${{ env.APP_NAME }}/DEBIAN/control << EOF
@@ -80,7 +79,7 @@ jobs:
         Section: utils
         Priority: optional
         Architecture: amd64
-        Depends: gjs, libgtk-3-0, libgirepository-1.0-1, libsoup2.4-1, libcairo2, libpango-1.0-0, libgdk-pixbuf2.0-0, libglib2.0-0, gnome-screenshot, curl, xclip, shared-mime-info
+        Depends: gjs, libgtk-3-0, libgirepository-1.0-1, libsoup-3.0-0, libcairo2, libpango-1.0-0, libgdk-pixbuf2.0-0, libglib2.0-0, gnome-screenshot, curl, xclip, shared-mime-info
         Maintainer: Your Name <your.email@example.com>
         Description: Screenshot editor application
          A screenshot editor built with GJS and GTK.
@@ -149,7 +148,7 @@ jobs:
           gjs \
           gtk3-devel \
           gobject-introspection-devel \
-          libsoup-devel \
+          libsoup3-devel \
           cairo-devel \
           pango-devel \
           gdk-pixbuf2-devel \
@@ -164,9 +163,7 @@ jobs:
     - name: Setup RPM build environment
       run: |
         rpmdev-setuptree
-        cp main.js ~/rpmbuild/SOURCES/
-        cp screenshot-editor.js ~/rpmbuild/SOURCES/
-        cp main-app.js ~/rpmbuild/SOURCES/
+        cp src/*.js ~/rpmbuild/SOURCES/
         cat > ~/rpmbuild/SOURCES/${{ env.APP_NAME }}.desktop << EOF
         [Desktop Entry]
         Name=Kiru
@@ -189,11 +186,17 @@ jobs:
         License:        MIT
         URL:            https://github.com/%{getenv:GITHUB_REPOSITORY}
         BuildArch:      x86_64
-        Source0:        main.js
-        Source1:        kiru.desktop
-        Source2:        kiru.png
+        Source0:        src/main.js
+        Source1:        src/screenshot-editor.js
+        Source2:        src/main-app.js
+        Source3:        src/config.js
+        Source4:        src/update.js
+        Source5:        src/monitor.js
+        Source6:        src/ui.js
+        Source7:        kiru.desktop
+        Source8:        kiru.png
 
-        Requires:       gjs gtk3 gobject-introspection libsoup cairo pango gdk-pixbuf2 glib2 gnome-screenshot curl xclip shared-mime-info
+        Requires:       gjs gtk3 gobject-introspection libsoup3 cairo pango gdk-pixbuf2 glib2 gnome-screenshot curl xclip shared-mime-info
 
         %description
         A screenshot editor built with GJS and GTK.
@@ -205,11 +208,23 @@ jobs:
         mkdir -p %{buildroot}/usr/share/applications
         mkdir -p %{buildroot}/usr/share/icons/hicolor/512x512/apps
         install -m 0755 %{SOURCE0} %{buildroot}/usr/bin/kiru
-        install -m 0644 %{SOURCE1} %{buildroot}/usr/share/applications/kiru.desktop
-        install -m 0644 %{SOURCE2} %{buildroot}/usr/share/icons/hicolor/512x512/apps/kiru.png
+        install -m 0644 %{SOURCE1} %{buildroot}/usr/bin/
+        install -m 0644 %{SOURCE2} %{buildroot}/usr/bin/
+        install -m 0644 %{SOURCE3} %{buildroot}/usr/bin/
+        install -m 0644 %{SOURCE4} %{buildroot}/usr/bin/
+        install -m 0644 %{SOURCE5} %{buildroot}/usr/bin/
+        install -m 0644 %{SOURCE6} %{buildroot}/usr/bin/
+        install -m 0644 %{SOURCE7} %{buildroot}/usr/share/applications/kiru.desktop
+        install -m 0644 %{SOURCE8} %{buildroot}/usr/share/icons/hicolor/512x512/apps/kiru.png
 
         %files
         %attr(0755,root,root) /usr/bin/kiru
+        /usr/bin/screenshot-editor.js
+        /usr/bin/main-app.js
+        /usr/bin/config.js
+        /usr/bin/update.js
+        /usr/bin/monitor.js
+        /usr/bin/ui.js
         /usr/share/applications/kiru.desktop
         /usr/share/icons/hicolor/512x512/apps/kiru.png
 
@@ -254,7 +269,7 @@ jobs:
           gjs \
           libgtk-3-0 \
           libgirepository-1.0-1 \
-          libsoup2.4-1 \
+          libsoup-3.0-0 \
           libcairo2 \
           libpango-1.0-0 \
           libgdk-pixbuf2.0-0 \
@@ -283,9 +298,8 @@ jobs:
         mkdir -p AppDir/usr/lib
         mkdir -p AppDir/usr/share/applications
         mkdir -p AppDir/usr/share/icons/hicolor/512x512/apps
-        cp main.js AppDir/usr/bin/${{ env.APP_NAME }}
-        cp screenshot-editor.js AppDir/usr/bin/
-        cp main-app.js AppDir/usr/bin/
+        cp src/main.js AppDir/usr/bin/${{ env.APP_NAME }}
+        cp src/*.js AppDir/usr/bin/
         chmod +x AppDir/usr/bin/${{ env.APP_NAME }}
 
         cat > AppDir/usr/share/applications/${{ env.APP_NAME }}.desktop << EOF
@@ -346,6 +360,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
+    - name: Generate version
+      run: |
+        VERSION=${{ github.ref_name }}
+        VERSION=${VERSION#v}  # Strip leading 'v'
+        echo $VERSION > VERSION
+        echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4
